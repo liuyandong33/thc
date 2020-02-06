@@ -27,6 +27,7 @@ public class MqttUtils {
             mqttClient.connect(buildMqttConnectOptions(userName, password));
             mqttClient.subscribe(topic, 0);
         } catch (Exception e) {
+            e.printStackTrace();
             ThreadUtils.sleepSafe(2000);
             mqttConnect();
         }

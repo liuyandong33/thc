@@ -1,0 +1,38 @@
+group "build.dream"
+version "1.0.0"
+
+buildscript {
+    ext {
+        springBootVersion = "2.0.0.RELEASE"
+        projectName = "thc"
+    }
+    repositories {
+        mavenLocal()
+        maven { url "${mavenPublicRepositoryUrl}" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: "org.springframework.boot"
+apply plugin: "io.spring.dependency-management"
+
+repositories {
+    mavenLocal()
+    maven { url "${mavenPublicRepositoryUrl}" }
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, "seconds"
+}
+
+dependencies {
+    compile("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.2")
+    compile("org.apache.commons:commons-lang3:3.9")
+    compile("commons-io:commons-io:2.6")
+    compile("commons-codec:commons-codec:1.13")
+    compile("org.apache.commons:commons-collections4:4.4")
+}

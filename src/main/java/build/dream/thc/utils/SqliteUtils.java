@@ -59,6 +59,17 @@ public class SqliteUtils {
     }
 
     public static int deleteToken() {
-        return 0;
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DriverManager.getConnection("jdbc:sqlite://e:/thc.db");
+            statement = connection.createStatement();
+            return statement.executeUpdate("DELETE FROM token");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            DatabaseUtils.closeStatement(statement);
+            DatabaseUtils.closeConnection(connection);
+        }
     }
 }

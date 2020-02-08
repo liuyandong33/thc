@@ -1,6 +1,4 @@
-package build.dream.thc.mqtt;
-
-import java.util.Date;
+package build.dream.thc.domains;
 
 public class MqttInfo {
     /**
@@ -31,11 +29,6 @@ public class MqttInfo {
      * 需要订阅的topic
      */
     private String topic;
-
-    /**
-     * 过期时间
-     */
-    private Date expireTime;
 
     public String getInternalEndPoint() {
         return internalEndPoint;
@@ -83,13 +76,5 @@ public class MqttInfo {
 
     public void setTopic(String topic) {
         this.topic = topic;
-    }
-
-    public Date getExpireTime() {
-        return expireTime;
-    }
-
-    public void setExpireTime(Date expireTime) {
-        this.expireTime = expireTime;
     }
 }

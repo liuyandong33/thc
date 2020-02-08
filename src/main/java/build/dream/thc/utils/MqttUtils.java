@@ -1,24 +1,47 @@
 package build.dream.thc.utils;
 
-import build.dream.thc.mqtt.MqttInfo;
+import build.dream.thc.Application;
+import build.dream.thc.beans.WebResponse;
+import build.dream.thc.domains.MqttInfo;
+import build.dream.thc.domains.Token;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
-import java.util.Date;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class MqttUtils {
     private static MqttClient mqttClient;
 
+    public static MqttInfo obtainMqttInfo() throws IOException {
+        MqttInfo mqttInfo = SqliteUtils.findMqttInfo();
+        if (Objects.nonNull(mqttInfo)) {
+            return mqttInfo;
+        }
+        Token token = OAuthUtils.obtainToken(Application.clientId, Application.clientSecret);
+        Map<String, String> requestParameters = new HashMap<String, String>();
+        requestParameters.put("access_token", token.getAccessToken());
+        requestParameters.put("deviceCode", Application.DEVICE_CODE);
+        WebResponse webResponse = WebUtils.doGetWithRequestParameters("", requestParameters);
+        Map<String, Object> resultMap = JacksonUtils.readValueAsMap(webResponse.getResult(), String.class, Object.class);
+        Map<String, Object> data = (Map<String, Object>) resultMap.get("data");
+
+        mqttInfo = new MqttInfo();
+        SqliteUtils.insertMqttInfo(mqttInfo);
+        return mqttInfo;
+    }
+
     public static void mqttConnect() {
         try {
-            MqttInfo mqttInfo = null;
+            MqttInfo mqttInfo = obtainMqttInfo();
             String internalEndPoint = mqttInfo.getInternalEndPoint();
             String endPoint = mqttInfo.getEndPoint();
             String clientId = mqttInfo.getClientId();
             String userName = mqttInfo.getUserName();
             String password = mqttInfo.getPassword();
             String topic = mqttInfo.getTopic();
-            Date expireTime = mqttInfo.getExpireTime();
 
             MemoryPersistence memoryPersistence = new MemoryPersistence();
             mqttClient = new MqttClient("tcp://" + endPoint + ":1883", clientId, memoryPersistence);

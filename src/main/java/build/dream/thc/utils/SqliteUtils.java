@@ -6,7 +6,21 @@ import build.dream.thc.domains.Token;
 import java.sql.*;
 
 public class SqliteUtils {
-    private static final String THC_DB_URL = "jdbc:sqlite://e:/thc.db";
+    private static final String THC_DB_URL = "jdbc:sqlite:///Users/liuyandong/Workspace/thc/thc.db";
+
+    public static boolean execute(String sql) {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            connection = DriverManager.getConnection(THC_DB_URL);
+            return connection.createStatement().execute(sql);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            DatabaseUtils.closeStatement(preparedStatement);
+            DatabaseUtils.closeConnection(connection);
+        }
+    }
 
     static {
         try {
@@ -46,6 +60,7 @@ public class SqliteUtils {
             resultSet = statement.executeQuery("SELECT * from token");
             Token token = null;
             if (resultSet.next()) {
+                token = new Token();
                 token.setAccessToken(resultSet.getString("access_token"));
                 token.setTokenType(resultSet.getString("token_type"));
                 token.setExpiresIn(resultSet.getLong("expires_in"));
@@ -87,6 +102,7 @@ public class SqliteUtils {
             resultSet = statement.executeQuery("SELECT * from mqtt_info");
             MqttInfo mqttInfo = null;
             if (resultSet.next()) {
+                mqttInfo = new MqttInfo();
                 mqttInfo.setInternalEndPoint(resultSet.getString("internal_end_point"));
                 mqttInfo.setEndPoint(resultSet.getString("end_point"));
                 mqttInfo.setClientId(resultSet.getString("client_id"));
@@ -109,7 +125,7 @@ public class SqliteUtils {
         PreparedStatement preparedStatement = null;
         try {
             connection = DriverManager.getConnection(THC_DB_URL);
-            preparedStatement = connection.prepareStatement("INSERT INTO token(internal_end_point, end_point, client_id, user_name, password, topic) VALUES (?, ?, ?, ?, ?, ?)");
+            preparedStatement = connection.prepareStatement("INSERT INTO mqtt_info(internal_end_point, end_point, client_id, user_name, password, topic) VALUES (?, ?, ?, ?, ?, ?)");
             preparedStatement.setString(1, mqttInfo.getInternalEndPoint());
             preparedStatement.setString(2, mqttInfo.getEndPoint());
             preparedStatement.setString(3, mqttInfo.getClientId());

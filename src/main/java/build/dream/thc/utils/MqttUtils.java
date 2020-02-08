@@ -2,8 +2,9 @@ package build.dream.thc.utils;
 
 import build.dream.thc.Application;
 import build.dream.thc.beans.WebResponse;
+import build.dream.thc.constants.Constants;
 import build.dream.thc.domains.MqttInfo;
-import build.dream.thc.domains.Token;
+import org.apache.commons.collections4.MapUtils;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
@@ -20,15 +21,21 @@ public class MqttUtils {
         if (Objects.nonNull(mqttInfo)) {
             return mqttInfo;
         }
-        Token token = OAuthUtils.obtainToken(Application.clientId, Application.clientSecret);
+//        Token token = OAuthUtils.obtainToken(Application.clientId, Application.clientSecret);
         Map<String, String> requestParameters = new HashMap<String, String>();
-        requestParameters.put("access_token", token.getAccessToken());
+//        requestParameters.put("access_token", token.getAccessToken());
         requestParameters.put("deviceCode", Application.DEVICE_CODE);
-        WebResponse webResponse = WebUtils.doGetWithRequestParameters("", requestParameters);
+        WebResponse webResponse = WebUtils.doGetWithRequestParameters("http://localhost:9000/device/obtainMqttInfo", requestParameters);
         Map<String, Object> resultMap = JacksonUtils.readValueAsMap(webResponse.getResult(), String.class, Object.class);
         Map<String, Object> data = (Map<String, Object>) resultMap.get("data");
 
         mqttInfo = new MqttInfo();
+        mqttInfo.setInternalEndPoint(MapUtils.getString(data, "internalEndPoint"));
+        mqttInfo.setEndPoint(MapUtils.getString(data, "endPoint"));
+        mqttInfo.setClientId(MapUtils.getString(data, "clientId"));
+        mqttInfo.setUserName(MapUtils.getString(data, "userName"));
+        mqttInfo.setPassword(MapUtils.getString(data, "password"));
+        mqttInfo.setTopic(MapUtils.getString(data, "topic"));
         SqliteUtils.insertMqttInfo(mqttInfo);
         return mqttInfo;
     }
@@ -71,7 +78,7 @@ public class MqttUtils {
 
             @Override
             public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-                System.out.println("receive msg from topic " + s + " , body is " + new String(mqttMessage.getPayload()));
+                System.out.println("receive msg from topic " + s + " , body is " + new String(mqttMessage.getPayload(), Constants.CHARSET_NAME_GBK));
             }
 
             @Override

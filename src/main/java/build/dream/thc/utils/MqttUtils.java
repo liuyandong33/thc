@@ -25,7 +25,7 @@ public class MqttUtils {
         Map<String, String> requestParameters = new HashMap<String, String>();
 //        requestParameters.put("access_token", token.getAccessToken());
         requestParameters.put("deviceCode", Application.DEVICE_CODE);
-        WebResponse webResponse = WebUtils.doGetWithRequestParameters("http://localhost:9000/device/obtainMqttInfo", requestParameters);
+        WebResponse webResponse = WebUtils.doGetWithRequestParameters("http://localhost:9000/client/obtainMqttInfo", requestParameters);
         Map<String, Object> resultMap = JacksonUtils.readValueAsMap(webResponse.getResult(), String.class, Object.class);
         Map<String, Object> data = (Map<String, Object>) resultMap.get("data");
 
@@ -78,7 +78,25 @@ public class MqttUtils {
 
             @Override
             public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
-                System.out.println("receive msg from topic " + s + " , body is " + new String(mqttMessage.getPayload(), Constants.CHARSET_NAME_GBK));
+                String payload = new String(mqttMessage.getPayload(), Constants.CHARSET_UTF_8);
+                System.out.println("receive msg from topic " + s + " , body is " + payload);
+
+                Map<String, Object> payloadMap = JacksonUtils.readValueAsMap(payload, String.class, Object.class);
+                String code = MapUtils.getString(payloadMap, "code");
+                Map<String, Object> data = (Map<String, Object>) payloadMap.get("data");
+                if ("0000".equals(code)) {
+                    double temperature = SensorUtils.obtainTemperature();
+                    double humidity = SensorUtils.obtainHumidity();
+                    String id = MapUtils.getString(data, "id");
+
+                    Map<String, String> uploadDataRequestParameters = new HashMap<String, String>();
+                    uploadDataRequestParameters.put("deviceCode", Application.DEVICE_CODE);
+                    uploadDataRequestParameters.put("temperature", String.valueOf(temperature));
+                    uploadDataRequestParameters.put("humidity", String.valueOf(humidity));
+                    uploadDataRequestParameters.put("id", id);
+
+                    WebUtils.doPostWithRequestParameters("http://localhost:9000/client/uploadData", uploadDataRequestParameters);
+                }
             }
 
             @Override

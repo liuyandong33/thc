@@ -1,6 +1,7 @@
 package build.dream.thc;
 
 import build.dream.thc.beans.WebResponse;
+import build.dream.thc.tasks.MonitorTask;
 import build.dream.thc.utils.JacksonUtils;
 import build.dream.thc.utils.MqttUtils;
 import build.dream.thc.utils.SqliteUtils;
@@ -16,6 +17,9 @@ public class Application {
     public static String deviceId;
     public static String clientId;
     public static String clientSecret;
+    public static double temperatureAlarmThreshold;
+    public static double humidityAlarmThreshold;
+    public static MonitorTask monitorTask;
 
     public static void main(String[] args) throws IOException {
         SqliteUtils.execute("DROP TABLE IF EXISTS mqtt_info");
@@ -25,7 +29,12 @@ public class Application {
         deviceId = MapUtils.getString(deviceInfo, "deviceId");
         clientId = MapUtils.getString(deviceInfo, "clientId");
         clientSecret = MapUtils.getString(deviceInfo, "clientSecret");
+        temperatureAlarmThreshold = MapUtils.getDoubleValue(deviceInfo, "temperatureAlarmThreshold");
+        humidityAlarmThreshold = MapUtils.getDoubleValue(deviceInfo, "humidityAlarmThreshold");
         MqttUtils.mqttConnect();
+
+        monitorTask = new MonitorTask();
+        monitorTask.start();
     }
 
     public static Map<String, Object> obtainDeviceInfo() throws IOException {
